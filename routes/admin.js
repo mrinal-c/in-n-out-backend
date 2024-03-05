@@ -33,7 +33,6 @@ exports.getAdminKey = () => {
 }
 
 exports.verifyClientToken = (userToken, again = false) => {
-    console.log(userToken)
     return new Promise((resolve, reject) => {
         fetch(`https://realm.mongodb.com/api/admin/v3.0/groups/${projectID}/apps/${appID}/users/verify_token`, {
             method: 'POST',
