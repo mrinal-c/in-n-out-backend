@@ -1,6 +1,5 @@
 // This will help us connect to the database
 const Realm = require("realm-web");
-console.log(process.env.APP_ID);
 const realmApp = new Realm.App({ id: process.env.APP_ID });
 const dbo = require("../db/conn");
 const { verifyClientToken } = require("./admin");
