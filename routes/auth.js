@@ -1,95 +1,76 @@
-// This will help us connect to the database
-const Realm = require("realm-web");
-const realmApp = new Realm.App({ id: process.env.APP_ID });
-const dbo = require("../db/conn");
-const { verifyClientToken } = require("./admin");
+const User = require("../models/User");
+const { createSecretToken } = require("../generateToken");
+const bcrypt = require("bcrypt");
+const {v4 : uuidv4} = require('uuid')
+const {Router } = require('express')
+const router = Router(); // create router to create route bundle
 
-exports.addUser = (req, res) => {
-  if (!req.body.password || !req.body.email) {
-    res.status(400).send("Please enter a valid email and password");
-    return;
-  }
-  realmApp.emailPasswordAuth
-    .registerUser({
+router.post( '/signup', async (req, res) => {
+  try {
+    if (
+      !(
+        req.body.email &&
+        req.body.password &&
+        req.body.name &&
+        req.body.username
+      )
+    ) {
+      res.status(400).send("All input is required");
+    }
+
+    const oldUser = await User.findOne({ email: req.body.email });
+
+    if (oldUser) {
+      return res.status(409).send("User Already Exist. Please Login");
+    }
+    const salt = 10;
+    const hashedPassword = await bcrypt.hash(req.body.password, salt);
+    const newUser = new User({
+      name: req.body.name,
+      username: req.body.username,
       email: req.body.email,
-      password: req.body.password,
-    })
-    .then(() => {
-      const credentials = Realm.Credentials.emailPassword(
-        req.body.email,
-        req.body.password
-      );
-      return realmApp.logIn(credentials);
-    })
-    .then((user) => {
-      let myUser = {
-        uid: user.id,
-        email: user.profile.email,
-        accessToken: user.accessToken,
-        refreshToken: user.refreshToken,
-      };
-      res.json({
-        message: "Successfully logged in",
-        status: "SUCCESS",
-        user: myUser,
-      });
-    })
-    .catch((err) => res.json({ message: err.message }));
-};
-
-exports.logonUser = (req, res) => {
-  if (!req.body.password || !req.body.email) {
-    res.status(400).send("Please enter a valid email and password");
-    return;
-  }
-  const credentials = Realm.Credentials.emailPassword(
-    req.body.email,
-    req.body.password
-  );
-  realmApp
-    .logIn(credentials)
-    .then((user) => {
-      let myUser = {
-        uid: user.id,
-        email: user.profile.email,
-        accessToken: user.accessToken,
-        refreshToken: user.refreshToken,
-      };
-      res.json({
-        message: "Successfully logged in",
-        status: "SUCCESS",
-        user: myUser,
-      });
-    })
-    .catch((err) => res.json({ message: err.message, status: "FAIL" }));
-};
-
-exports.changeYear = (req, res) => {
-  if (req.query.year === undefined || req.headers.accesstoken === undefined) {
-    res.status(400).send("Missing required fields");
-    return;
-  }
-  verifyClientToken(req.headers.accesstoken)
-    .then((result) => {
-      if (result.action !== "PASS") {
-        res.status(401).send(result.action);
-        return;
-      } else if (result.action === "PASS") {
-        dbo
-          .changeYear(req.query.year)
-          .then(() => {
-            res.json({ message: "Successfully changed year" });
-          })
-          .catch((err) => res.json({ message: err.message }));
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-      res.json(err);
+      password: hashedPassword,
+      _id: uuidv4(),
     });
-};
+    const user = await newUser.save();
+    const token = createSecretToken(user._id);
 
+    res.cookie("token", token, {
+      path: "/", // Cookie is accessible from all paths
+      expires: new Date(Date.now() + 86400000), // Cookie expires in 1 day
+      secure: true, // Cookie will only be sent over HTTPS
+      httpOnly: true, // Cookie cannot be accessed via client-side scripts
+      sameSite: "None",
+    });
 
-exports.wakeUp = (req, res) => {
-  res.json({message: "AWAKE"});
-}
+    console.log("cookie set succesfully");
+
+    res.json(user);
+  } catch (error) {
+    console.log("Got an error", error);
+  }
+});
+
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+  if (!(email && password)) {
+    return res.status(400).json({ message: "All input is required" });
+  }
+  const user = await User.findOne({ email });
+  if (!(user && (await bcrypt.compare(password, user.password)))) {
+    return res.status(404).json({ message: "Invalid credentials" });
+  }
+  const token = createSecretToken(user._id);
+  res.cookie("token", token, {
+    domain: process.env.frontend_url, // Set your domain here
+    path: "/", // Cookie is accessible from all paths
+    expires: new Date(Date.now() + 86400000), // Cookie expires in 1 day
+    secure: true, // Cookie will only be sent over HTTPS
+    httpOnly: true, // Cookie cannot be accessed via client-side scripts
+    sameSite: "None",
+  });
+
+  res.json({ token });
+});
+
+module.exports = router;

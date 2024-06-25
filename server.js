@@ -5,13 +5,17 @@ const port = process.env.PORT || 5000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(require("./routes/index"));
-const {getAdminKey} = require("./routes/admin");
+// app.use(require("./routes/index"));
+// const {getAdminKey} = require("./routes/admin");
 // get driver connection
 const dbo = require("./db/conn");
+const AuthRouter = require("./routes/auth");
+
+app.use("/auth", AuthRouter);
+
+
 
 app.listen(port, () => {
-  getAdminKey();
   
   // perform a database connection when server starts
   dbo.connectToServer(function (err) {
