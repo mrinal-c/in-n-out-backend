@@ -25,14 +25,10 @@ const TransactionSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    month: {
+    type: {
         type: String,
-        required: true,
-    },
-    year: {
-        type: String,
-        required: true,
-    },
+        required: true
+    }
 });
 
 const Transaction = mongoose.model("Transaction", TransactionSchema);

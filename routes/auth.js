@@ -1,7 +1,7 @@
 const User = require("../models/User");
 const { createSecretToken } = require("../generateToken");
 const bcrypt = require("bcrypt");
-const {v4 : uuidv4} = require('uuid')
+// const {v4 : uuidv4} = require('uuid')
 const {Router } = require('express')
 const router = Router(); // create router to create route bundle
 
@@ -15,7 +15,7 @@ router.post( '/signup', async (req, res) => {
         req.body.username
       )
     ) {
-      res.status(400).send("All input is required");
+      return res.status(400).send("All input is required");
     }
 
     const oldUser = await User.findOne({ email: req.body.email });
@@ -30,7 +30,7 @@ router.post( '/signup', async (req, res) => {
       username: req.body.username,
       email: req.body.email,
       password: hashedPassword,
-      _id: uuidv4(),
+      // _id: uuidv4(),
     });
     const user = await newUser.save();
     const token = createSecretToken(user._id);
@@ -42,8 +42,6 @@ router.post( '/signup', async (req, res) => {
       httpOnly: true, // Cookie cannot be accessed via client-side scripts
       sameSite: "None",
     });
-
-    console.log("cookie set succesfully");
 
     res.json(user);
   } catch (error) {
@@ -70,7 +68,7 @@ router.post('/login', async (req, res) => {
     sameSite: "None",
   });
 
-  res.json({ token });
+  return res.status(200).json({message: "Success"});
 });
 
 module.exports = router;
