@@ -1,4 +1,0 @@
-runtime: nodejs20
-env_variables:
-  DB_URL: "mongodb+srv://mrinal-personal-finance:7QlSeTvcjCZXhP4Z@cluster0.g6yrh9g.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-  JWT_SECRET: "666f681388bd1d34123a136e58911f6f5cd7dc030c9f0f9cd863684c2af1f41f"
