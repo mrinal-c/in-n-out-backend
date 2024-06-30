@@ -1,37 +1,26 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 var ObjectId = mongoose.Types.ObjectId;
-const  verifyUser  = require("./middleware");
+const verifyUser = require("./middleware");
 const { Router } = require("express");
 const router = Router(); // create router to create route bundle
-const  Transaction  = require("../models/Transaction");
-
-const monthMap = {
-  Jan: "01",
-  Feb: "02",
-  Mar: "03",
-  Apr: "04",
-  May: "05",
-  Jun: "06",
-  Jul: "07",
-  Aug: "08",
-  Sep: "09",
-  Oct: "10",
-  Nov: "11",
-  Dec: "12",
-};
+const Transaction = require("../models/Transaction");
 
 router.post("/transaction", verifyUser, async (req, res) => {
+  if (req.query.month === undefined || req.query.year === undefined) {
+    return res.status(400).send("Missing required fields");
+  }
   try {
     const transaction = {
       description: req.body.description,
       amount: parseFloat(req.body.amount),
-      date: req.body.date,
+      transactionDate: req.body.date,
       uid: req.uid,
-      out: req.body.out, // Assuming this should always be false as per your original code
+      out: req.body.out,
       payment: req.body.payment,
-      type: req.body.type
+      type: req.body.type,
+      month: req.query.month,
+      year: req.query.year,
     };
-
     const result = await Transaction.create(transaction);
     res.json(result);
   } catch (err) {
@@ -49,30 +38,28 @@ router.get("/transaction", verifyUser, async (req, res) => {
     return res.status(400).send("Missing required fields");
   }
 
-  const month = monthMap[req.query.month];
-
-  const startDate = new Date(`${req.query.year}-${month}-01`);
-  const endDate = new Date(startDate);
-  endDate.setMonth(endDate.getMonth() + 1);
-
   try {
-    const transactions = await Transaction.find({
-      uid: req.uid,
-      date: {
-        $gte: startDate.toISOString().split("T")[0],
-        $lt: endDate.toISOString().split("T")[0],
+    const transactions = await Transaction.find(
+      {
+        uid: req.uid,
+        month: req.query.month,
+        year: req.query.year,
+        out: req.query.out,
       },
-    }).exec();
+      { month: false, year: false }
+    ).lean().exec();
 
     // Adjusting amount to fixed decimal places
     transactions.forEach((transaction) => {
-      transaction.amount = transaction.amount.toFixed(2);
+      transaction.amount = parseFloat(transaction.amount.toFixed(2));
+      transaction.date = transaction.transactionDate;
+      delete transaction.transactionDate;
     });
 
-    if (req.query.out === 'true') {
+    if (req.query.out === "true") {
       const tableData = crunchNumbers(transactions);
       res.json({ transactions, tableData });
-    } else {      
+    } else {
       res.json({ transactions });
     }
   } catch (err) {
@@ -121,19 +108,18 @@ router.put("/transaction", verifyUser, async (req, res) => {
   }
   try {
     const query = { _id: new ObjectId(req.query._id) }; // Assuming req.query._id is a valid ObjectId string
-    const replacement = {
-      description: req.body.description,
-      amount: parseFloat(req.body.amount),
-      date: req.body.date,
-      payment: req.body.payment,
-      uid: req.uid,
-      out: req.body.out,
-      type: req.body.type
+    const newFields = {
+      $set: {
+        description: req.body.description,
+        amount: parseFloat(req.body.amount),
+        transactionDate: req.body.date,
+        payment: req.body.payment,
+        out: req.body.out,
+        type: req.body.type,
+      },
     };
 
-    const result = await Transaction.findOneAndUpdate(query, replacement, {
-      new: true,
-    }).exec();
+    const result = await Transaction.findOneAndUpdate(query, newFields).exec();
 
     res.json(result);
   } catch (err) {

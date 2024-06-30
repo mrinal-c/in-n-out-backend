@@ -9,7 +9,7 @@ const TransactionSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
-    date: {
+    transactionDate: {
         type: String,
         required: true,
     },
@@ -28,7 +28,15 @@ const TransactionSchema = new mongoose.Schema({
     type: {
         type: String,
         required: true
-    }
+    },
+    month: {
+        type: String, 
+        required: true
+    },
+    year: {
+        type: String, 
+        required: true
+    },
 });
 
 const Transaction = mongoose.model("Transaction", TransactionSchema);
