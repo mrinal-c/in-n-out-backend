@@ -11,10 +11,10 @@ COPY package*.json ./
 RUN npm ci
 
 # Copy the application code to the container
-COPY db/ ./db/
 COPY routes/ ./routes/
-COPY globals.js ./
+COPY models/ ./models/
 COPY server.js ./
+COPY generateToken.js ./
 
 # Expose the port on which your application will run
 EXPOSE 5000
