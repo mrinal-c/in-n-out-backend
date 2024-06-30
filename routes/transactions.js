@@ -25,7 +25,7 @@ router.post("/transaction", verifyUser, async (req, res) => {
     res.json(result);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to insert transaction" });
+    res.status(500).json({ message: "Failed to insert transaction" });
   }
 });
 
@@ -35,7 +35,7 @@ router.get("/transaction", verifyUser, async (req, res) => {
     req.query.year === undefined ||
     req.query.out === undefined
   ) {
-    return res.status(400).send("Missing required fields");
+    return res.status(400).json({ message: "Missing required fields" });
   }
 
   try {
@@ -64,7 +64,7 @@ router.get("/transaction", verifyUser, async (req, res) => {
     }
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to fetch transactions" });
+    res.status(500).json({ message: "Failed to fetch transactions" });
   }
 });
 
@@ -104,7 +104,7 @@ function crunchNumbers(transactions) {
 
 router.put("/transaction", verifyUser, async (req, res) => {
   if (req.query._id === undefined) {
-    return res.status(400).send("Missing required fields");
+    return res.status(400).json({ message: "Missing required fields" });
   }
   try {
     const query = { _id: new ObjectId(req.query._id) }; // Assuming req.query._id is a valid ObjectId string
@@ -124,13 +124,13 @@ router.put("/transaction", verifyUser, async (req, res) => {
     res.json(result);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to update expense" });
+    res.status(500).json({ message: "Failed to update expense" });
   }
 });
 
 router.delete("/transaction", verifyUser, async (req, res) => {
   if (req.query._id === undefined) {
-    return res.status(400).send("Missing required fields");
+    return res.status(400).json({ message: "Missing required fields" });
   }
   try {
     const query = { _id: new ObjectId(req.query._id) }; // Assuming req.query._id is a valid ObjectId string
@@ -140,7 +140,7 @@ router.delete("/transaction", verifyUser, async (req, res) => {
     res.json(result);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to delete expense" });
+    res.status(500).json({ message: "Failed to delete expense" });
   }
 });
 

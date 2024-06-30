@@ -15,13 +15,13 @@ router.post( '/signup', async (req, res) => {
         req.body.username
       )
     ) {
-      return res.status(400).send("All input is required");
+      return res.status(400).json({ message: "All input is required" });
     }
 
     const oldUser = await User.findOne({ email: req.body.email });
 
     if (oldUser) {
-      return res.status(409).send("User Already Exist. Please Login");
+      return res.status(409).json({ message: "User already exists. Please login"});
     }
     const salt = 10;
     const hashedPassword = await bcrypt.hash(req.body.password, salt);
@@ -36,17 +36,9 @@ router.post( '/signup', async (req, res) => {
     delete user.password;
     const token = createSecretToken(user._id);
 
-    // res.cookie("token", token, {
-    //   path: "/", // Cookie is accessible from all paths
-    //   expires: new Date(Date.now() + 86400000), // Cookie expires in 1 day
-    //   secure: true, // Cookie will only be sent over HTTPS
-    //   httpOnly: true, // Cookie cannot be accessed via client-side scripts
-    //   sameSite: "None",
-    // });
-
     return res.status(200).json({ token, user });
   } catch (error) {
-    console.log("Got an error", error);
+    return res.status(409).send({ message: error.message });
   }
 });
 
@@ -61,15 +53,6 @@ router.post('/login', async (req, res) => {
   }
   delete user.password;
   const token = createSecretToken(user._id);
-  // res.cookie("token", token, {
-  //   domain: process.env.frontend_url, // Set your domain here
-  //   path: "/", // Cookie is accessible from all paths
-  //   expires: new Date(Date.now() + 86400000), // Cookie expires in 1 day
-  //   secure: true, // Cookie will only be sent over HTTPS
-  //   httpOnly: true, // Cookie cannot be accessed via client-side scripts
-  //   sameSite: "None",
-  // });
-
   return res.status(200).json({token, user});
 });
 
