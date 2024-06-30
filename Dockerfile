@@ -14,6 +14,7 @@ RUN npm ci
 COPY routes/ ./routes/
 COPY models/ ./models/
 COPY server.js ./
+COPY generateToken.js ./
 
 # Expose the port on which your application will run
 EXPOSE 5000

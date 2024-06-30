@@ -1,4 +1,3 @@
-const dbo = require("../db/conn");
 const mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 const  verifyUser  = require("./middleware");
@@ -59,7 +58,6 @@ router.get("/transaction", verifyUser, async (req, res) => {
   try {
     const transactions = await Transaction.find({
       uid: req.uid,
-      out: req.query.out,
       date: {
         $gte: startDate.toISOString().split("T")[0],
         $lt: endDate.toISOString().split("T")[0],
@@ -71,11 +69,11 @@ router.get("/transaction", verifyUser, async (req, res) => {
       transaction.amount = transaction.amount.toFixed(2);
     });
 
-    if (req.query.out) {
+    if (req.query.out === 'true') {
       const tableData = crunchNumbers(transactions);
       res.json({ transactions, tableData });
-    } else {
-      res.json(transactions);
+    } else {      
+      res.json({ transactions });
     }
   } catch (err) {
     console.error(err);

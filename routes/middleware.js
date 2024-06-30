@@ -1,9 +1,8 @@
 const jwt = require('jsonwebtoken');
-const cookieParser = require('cookie-parser');
 
 const verifyUser = (req, res, next) => {
   try {
-    const token = req.cookies.token;
+    const token = req.cookies['auth-token'];
     if (!token) {
       throw new Error('No token found');
     }

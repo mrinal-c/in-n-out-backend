@@ -6,14 +6,17 @@ const cookieParser = require('cookie-parser');
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(cors());
-app.use(express.json());
 app.use(cookieParser());
+app.use(express.json());
+
+app.use(cors({
+  credentials: true
+}));
+
+
+
 app.use(express.urlencoded({ extended: true }));
-// app.use(require("./routes/index"));
-// const {getAdminKey} = require("./routes/admin");
-// get driver connection
-const dbo = require("./db/conn");
+
 const AuthRouter = require("./routes/auth");
 const TransactionRouter = require("./routes/transactions");
 
