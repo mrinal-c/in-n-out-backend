@@ -4,6 +4,7 @@ const verifyUser = require("./middleware");
 const { Router } = require("express");
 const router = Router(); // create router to create route bundle
 const Transaction = require("../models/Transaction");
+const User = require("../models/User");
 
 router.post("/transaction", verifyUser, async (req, res) => {
   if (req.query.month === undefined || req.query.year === undefined) {
@@ -15,6 +16,7 @@ router.post("/transaction", verifyUser, async (req, res) => {
       amount: parseFloat(req.body.amount),
       transactionDate: req.body.date,
       uid: req.uid,
+      tags: req.body.tags,
       out: req.body.out,
       payment: req.body.payment,
       type: req.body.type,
@@ -47,7 +49,9 @@ router.get("/transaction", verifyUser, async (req, res) => {
         out: req.query.out,
       },
       { month: false, year: false }
-    ).lean().exec();
+    )
+      .lean()
+      .exec();
 
     // Adjusting amount to fixed decimal places
     transactions.forEach((transaction) => {
@@ -57,7 +61,7 @@ router.get("/transaction", verifyUser, async (req, res) => {
     });
 
     if (req.query.out === "true") {
-      const tableData = crunchNumbers(transactions);
+      const tableData = await crunchNumbers(transactions, req.uid);
       res.json({ transactions, tableData });
     } else {
       res.json({ transactions });
@@ -68,38 +72,38 @@ router.get("/transaction", verifyUser, async (req, res) => {
   }
 });
 
-function crunchNumbers(transactions) {
-  let tableData = {
-    Food: 0.0,
-    Groceries: 0.0,
-    Travel: 0.0,
-    Personal: 0.0,
-    Other: 0.0,
-    "Big Ticket": 0.0,
-    Total: 0.0,
-    TotalNoBT: 0.0,
-  };
-  transactions.forEach((transaction) => {
-    if (
-      transaction.type === "Lunch" ||
-      transaction.type === "Breakfast" ||
-      transaction.type === "Dinner"
-    ) {
-      tableData["Food"] += transaction.amount;
-    } else {
-      tableData[transaction.type] += transaction.amount;
+async function crunchNumbers(transactions, uid) {
+  try {
+    const user = await User.findOne({ _id: uid }).lean().exec();
+    const table = user.table;
+    const tableData = {};
+
+    table.forEach((row) => {
+      const { category } = row;
+      tableData[category] = 0;
+    });
+
+    transactions.forEach((transaction) => {
+      const transactionTags = transaction.tags;
+
+      table.forEach((row) => {
+        const { category, tags: categoryTags } = row;
+
+        // Check if any tag in the transaction matches the category tags
+        if (transactionTags.some((tag) => categoryTags.includes(tag))) {
+          tableData[category] += transaction.amount; // Add the transaction value
+        }
+      });
+    });
+
+    for (let key in tableData) {
+      tableData[key] = tableData[key].toFixed(2);
     }
 
-    if (transaction.type !== "Big Ticket") {
-      tableData["TotalNoBT"] += transaction.amount;
-    }
-    tableData["Total"] += transaction.amount;
-  });
-
-  for (let key in tableData) {
-    tableData[key] = tableData[key].toFixed(2);
+    return tableData;
+  } catch (err) {
+    return {};
   }
-  return tableData;
 }
 
 router.put("/transaction", verifyUser, async (req, res) => {
