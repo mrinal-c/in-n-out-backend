@@ -118,8 +118,8 @@ router.put("/transaction", verifyUser, async (req, res) => {
         amount: parseFloat(req.body.amount),
         transactionDate: req.body.date,
         payment: req.body.payment,
-        out: req.body.out,
-        type: req.body.type,
+        tags: req.body.tags,
+        out: req.body.out
       },
     };
 
