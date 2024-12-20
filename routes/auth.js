@@ -47,7 +47,7 @@ router.post('/login', async (req, res) => {
   if (!(email && password)) {
     return res.status(400).json({ message: "All input is required" });
   }
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).lean();
   if (!(user && (await bcrypt.compare(password, user.password)))) {
     return res.status(404).json({ message: "Invalid credentials" });
   }

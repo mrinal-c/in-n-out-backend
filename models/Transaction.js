@@ -21,13 +21,14 @@ const TransactionSchema = new mongoose.Schema({
         type: Boolean,
         required: true,
     },
+    tags: {
+        type: [String],
+        required: false,
+        default: []
+    },
     payment: {
         type: String,
         required: true,
-    },
-    type: {
-        type: String,
-        required: true
     },
     month: {
         type: String, 

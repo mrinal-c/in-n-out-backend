@@ -20,5 +20,8 @@
     "mongoose": "^8.4.4",
     "realm-web": "^2.0.0",
     "twilio": "^4.15.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0"
   }
 }

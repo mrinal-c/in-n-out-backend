@@ -16,9 +16,12 @@ app.use(express.urlencoded({ extended: true }));
 
 const AuthRouter = require("./routes/auth");
 const TransactionRouter = require("./routes/transactions");
+const UserRouter = require("./routes/user");
 
 app.use("/auth", AuthRouter);
 app.use("/api", TransactionRouter);
+app.use("/user", UserRouter);
+
 
 app.listen(port, () => {
   // perform a database connection when server starts
