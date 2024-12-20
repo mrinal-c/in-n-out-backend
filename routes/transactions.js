@@ -75,8 +75,9 @@ router.get("/transaction", verifyUser, async (req, res) => {
 async function crunchNumbers(transactions, uid) {
   try {
     const user = await User.findOne({ _id: uid }).lean().exec();
-    const table = user.table;
+    const table = user.outTable;
     const tableData = {};
+    let total = 0;
 
     table.forEach((row) => {
       const { category } = row;
@@ -85,6 +86,7 @@ async function crunchNumbers(transactions, uid) {
 
     transactions.forEach((transaction) => {
       const transactionTags = transaction.tags;
+      total += transaction.amount;
 
       table.forEach((row) => {
         const { category, tags: categoryTags } = row;
@@ -96,9 +98,13 @@ async function crunchNumbers(transactions, uid) {
       });
     });
 
+
+    tableData["Total"] = total;
+
     for (let key in tableData) {
       tableData[key] = tableData[key].toFixed(2);
     }
+
 
     return tableData;
   } catch (err) {

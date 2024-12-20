@@ -52,12 +52,6 @@ router.post('/login', async (req, res) => {
     return res.status(404).json({ message: "Invalid credentials" });
   }
   delete user.password;
-  const outTable = {}
-  user.table.forEach((row) => {
-    const { category, tags } = row;
-    outTable[category] = tags;
-  });
-  user.outTable = outTable;
   const token = createSecretToken(user._id);
   return res.status(200).json({token, user});
 });
