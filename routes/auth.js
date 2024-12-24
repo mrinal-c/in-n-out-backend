@@ -1,5 +1,5 @@
 const User = require("../models/User");
-const { createSecretToken } = require("../generateToken");
+const { createSecretToken } = require("../lib/generateToken");
 const bcrypt = require("bcrypt");
 // const {v4 : uuidv4} = require('uuid')
 const {Router } = require('express')
