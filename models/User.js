@@ -32,6 +32,18 @@ const UserSchema = new mongoose.Schema(
         },
       },
     ],
+    inTable: [
+      {
+        category: {
+          type: String,
+          required: true,
+        },
+        tags: {
+          type: [String],
+          required: true,
+        },
+      },
+    ],
     payments: [
       {
         type: String,
