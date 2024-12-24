@@ -32,11 +32,7 @@ router.post("/transaction", verifyUser, async (req, res) => {
 });
 
 router.get("/transaction", verifyUser, async (req, res) => {
-  if (
-    req.query.month === undefined ||
-    req.query.year === undefined ||
-    req.query.out === undefined
-  ) {
+  if (req.query.month === undefined || req.query.year === undefined) {
     return res.status(400).json({ message: "Missing required fields" });
   }
 
@@ -46,7 +42,6 @@ router.get("/transaction", verifyUser, async (req, res) => {
         uid: req.uid,
         month: req.query.month,
         year: req.query.year,
-        out: req.query.out,
       },
       { month: false, year: false }
     )
@@ -60,22 +55,28 @@ router.get("/transaction", verifyUser, async (req, res) => {
       delete transaction.transactionDate;
     });
 
-    if (req.query.out === "true") {
-      const tableData = await crunchNumbers(transactions, req.uid);
-      res.json({ transactions, tableData });
-    } else {
-      res.json({ transactions });
-    }
+
+    const outTableData = await crunchNumbers(
+      transactions.filter((transaction) => transaction.out),
+      req.uid,
+      true
+    );
+    const inTableData = await crunchNumbers(
+      transactions.filter((transaction) => !transaction.out),
+      req.uid,
+      false
+    );
+    res.json({ transactions, outTableData, inTableData });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to fetch transactions" });
   }
 });
 
-async function crunchNumbers(transactions, uid) {
+async function crunchNumbers(transactions, uid, isOut) {
   try {
     const user = await User.findOne({ _id: uid }).lean().exec();
-    const table = user.outTable;
+    const table = isOut ? user.outTable : user.inTable;
     const tableData = {};
     let total = 0;
 
@@ -98,13 +99,11 @@ async function crunchNumbers(transactions, uid) {
       });
     });
 
-
     tableData["Total"] = total;
 
     for (let key in tableData) {
       tableData[key] = tableData[key].toFixed(2);
     }
-
 
     return tableData;
   } catch (err) {
@@ -125,7 +124,7 @@ router.put("/transaction", verifyUser, async (req, res) => {
         transactionDate: req.body.date,
         payment: req.body.payment,
         tags: req.body.tags,
-        out: req.body.out
+        out: req.body.out,
       },
     };
 

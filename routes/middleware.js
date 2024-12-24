@@ -7,8 +7,8 @@ const verifyUser = (req, res, next) => {
       throw new Error('No token found');
     }
     const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.uid = decoded.uid;
+    const {user} = jwt.verify(token, process.env.JWT_SECRET);
+    req.uid = user._id;
     next();
   } catch (err) {
     return res.status(401).json({

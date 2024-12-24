@@ -34,9 +34,9 @@ router.post( '/signup', async (req, res) => {
     });
     const user = await newUser.save();
     delete user.password;
-    const token = createSecretToken(user._id);
+    const token = createSecretToken(user);
 
-    return res.status(200).json({ token, user });
+    return res.status(200).json({ token });
   } catch (error) {
     return res.status(409).send({ message: error.message });
   }
@@ -52,8 +52,8 @@ router.post('/login', async (req, res) => {
     return res.status(404).json({ message: "Invalid credentials" });
   }
   delete user.password;
-  const token = createSecretToken(user._id);
-  return res.status(200).json({token, user});
+  const token = createSecretToken(user);
+  return res.status(200).json({token});
 });
 
 module.exports = router;
