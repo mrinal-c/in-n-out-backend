@@ -132,3 +132,4 @@ dist
 .gcloudignore
 app.yaml
 env.yaml
+migration.js
