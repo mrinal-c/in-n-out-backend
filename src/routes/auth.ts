@@ -1,11 +1,13 @@
-const User = require("../models/User");
-const { createSecretToken } = require("../lib/generateToken");
-const bcrypt = require("bcrypt");
-// const {v4 : uuidv4} = require('uuid')
-const {Router } = require('express')
-const router = Router(); // create router to create route bundle
+import User from "../models/User";
+import { createSecretToken } from "../lib/generateToken";
+import bcrypt from "bcrypt";
+// import { v4 as uuidv4 } from "uuid";
+import { Response, Router } from "express";
+import { AuthenticatedRequest } from "./middleware";
 
-router.post( '/signup', async (req, res) => {
+const authRouter = Router(); // create router to create route bundle
+
+authRouter.post('/signup', async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (
       !(
@@ -21,7 +23,7 @@ router.post( '/signup', async (req, res) => {
     const oldUser = await User.findOne({ email: req.body.email });
 
     if (oldUser) {
-      return res.status(409).json({ message: "User already exists. Please login"});
+      return res.status(409).json({ message: "User already exists. Please login" });
     }
     const salt = 10;
     const hashedPassword = await bcrypt.hash(req.body.password, salt);
@@ -33,16 +35,18 @@ router.post( '/signup', async (req, res) => {
       // _id: uuidv4(),
     });
     const user = await newUser.save();
-    delete user.password;
     const token = createSecretToken(user);
 
     return res.status(200).json({ token });
   } catch (error) {
-    return res.status(409).send({ message: error.message });
+    if (error instanceof Error) {
+      return res.status(409).send({ message: error.message });
+    }
+    return res.status(409).send({ message: "An unknown error occurred" });
   }
 });
 
-router.post('/login', async (req, res) => {
+authRouter.post('/login', async (req: AuthenticatedRequest, res: Response) => {
   const { email, password } = req.body;
   if (!(email && password)) {
     return res.status(400).json({ message: "All input is required" });
@@ -51,9 +55,9 @@ router.post('/login', async (req, res) => {
   if (!(user && (await bcrypt.compare(password, user.password)))) {
     return res.status(404).json({ message: "Invalid credentials" });
   }
-  delete user.password;
+  // delete user.password;
   const token = createSecretToken(user);
-  return res.status(200).json({token});
+  return res.status(200).json({ token });
 });
 
-module.exports = router;
+export default authRouter;

@@ -1,12 +1,13 @@
-const mongoose = require("mongoose");
-var ObjectId = mongoose.Types.ObjectId;
-const verifyUser = require("./middleware");
-const { Router } = require("express");
-const router = Router(); // create router to create route bundle
-const Transaction = require("../models/Transaction");
-const User = require("../models/User");
+import mongoose from "mongoose";
+const { ObjectId } = mongoose.Types;
+import { AuthenticatedRequest, verifyUser } from "./middleware";
+import { Router } from "express";
+const transactionsRouter = Router(); // create router to create route bundle
+import Transaction, { ITransaction } from "../models/Transaction";
+import User from "../models/User";
+import { Request, Response, NextFunction } from 'express';
 
-router.post("/transaction", verifyUser, async (req, res) => {
+transactionsRouter.post("/transaction", verifyUser, async (req: AuthenticatedRequest, res: Response) => {
   if (req.query.month === undefined || req.query.year === undefined) {
     return res.status(400).send("Missing required fields");
   }
@@ -31,13 +32,13 @@ router.post("/transaction", verifyUser, async (req, res) => {
   }
 });
 
-router.get("/transaction", verifyUser, async (req, res) => {
+transactionsRouter.get("/transaction", verifyUser, async (req: AuthenticatedRequest, res: Response) => {
   if (req.query.month === undefined || req.query.year === undefined) {
     return res.status(400).json({ message: "Missing required fields" });
   }
 
   try {
-    const transactions = await Transaction.find(
+    const transactions = (await Transaction.find(
       {
         uid: req.uid,
         month: req.query.month,
@@ -46,15 +47,13 @@ router.get("/transaction", verifyUser, async (req, res) => {
       { month: false, year: false }
     )
       .lean()
-      .exec();
+      .exec()) as ITransaction[];
 
     // Adjusting amount to fixed decimal places
     transactions.forEach((transaction) => {
       transaction.amount = parseFloat(transaction.amount.toFixed(2));
       transaction.date = transaction.transactionDate;
-      delete transaction.transactionDate;
     });
-
 
     const outTableData = await crunchNumbers(
       transactions.filter((transaction) => transaction.out),
@@ -73,11 +72,12 @@ router.get("/transaction", verifyUser, async (req, res) => {
   }
 });
 
-async function crunchNumbers(transactions, uid, isOut) {
+async function crunchNumbers(transactions: ITransaction[], uid: string, isOut: boolean) {
   try {
     const user = await User.findOne({ _id: uid }).lean().exec();
+    if (!user) return;
     const table = isOut ? user.outTable : user.inTable;
-    const tableData = {};
+    const tableData: Record<string, number> = {};
     let total = 0;
 
     table.forEach((row) => {
@@ -102,7 +102,7 @@ async function crunchNumbers(transactions, uid, isOut) {
     tableData["Total"] = total;
 
     for (let key in tableData) {
-      tableData[key] = tableData[key].toFixed(2);
+      tableData[key] = parseFloat(tableData[key].toFixed(2));
     }
 
     return tableData;
@@ -111,12 +111,12 @@ async function crunchNumbers(transactions, uid, isOut) {
   }
 }
 
-router.put("/transaction", verifyUser, async (req, res) => {
+transactionsRouter.put("/transaction", verifyUser, async (req: AuthenticatedRequest, res: Response) => {
   if (req.query._id === undefined) {
     return res.status(400).json({ message: "Missing required fields" });
   }
   try {
-    const query = { _id: new ObjectId(req.query._id) }; // Assuming req.query._id is a valid ObjectId string
+    const query = { _id: new ObjectId(req.query._id as string) }; // Assuming req.query._id is a valid ObjectId string
     const newFields = {
       $set: {
         description: req.body.description,
@@ -137,12 +137,12 @@ router.put("/transaction", verifyUser, async (req, res) => {
   }
 });
 
-router.delete("/transaction", verifyUser, async (req, res) => {
+transactionsRouter.delete("/transaction", verifyUser, async (req: AuthenticatedRequest, res: Response) => {
   if (req.query._id === undefined) {
     return res.status(400).json({ message: "Missing required fields" });
   }
   try {
-    const query = { _id: new ObjectId(req.query._id) }; // Assuming req.query._id is a valid ObjectId string
+    const query = { _id: new ObjectId(req.query._id as string) }; // Assuming req.query._id is a valid ObjectId string
 
     const result = await Transaction.deleteOne(query).exec();
 
@@ -153,4 +153,4 @@ router.delete("/transaction", verifyUser, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default transactionsRouter;

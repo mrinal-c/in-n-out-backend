@@ -1,12 +1,13 @@
-const User = require("../models/User");
+import User from "../models/User";
+import { Router } from "express";
+import { AuthenticatedRequest, verifyUser } from "./middleware";
+import { Request, Response, NextFunction } from 'express';
+import { createSecretToken } from "../lib/generateToken";
 
-const { Router } = require("express");
-const verifyUser = require("./middleware");
-const router = Router(); // create router to create route bundle
-const { createSecretToken } = require("../lib/generateToken");
+const userRouter = Router(); // create router to create route bundle
 
 
-router.put('/table', verifyUser, async (req, res) => {
+userRouter.put('/table', verifyUser, async (req: AuthenticatedRequest, res: Response) => {
     if (req.query.isOut === undefined) {
         return res.status(400).json({ message: "Missing required fields" });
     }
@@ -21,4 +22,5 @@ router.put('/table', verifyUser, async (req, res) => {
 
 })
 
-module.exports = router;
+export default userRouter;
+
