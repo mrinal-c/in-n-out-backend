@@ -16,5 +16,8 @@ COPY src/ src/
 # Expose the port on which your application will run
 EXPOSE 5000
 
+# build the app
+RUN npm run build
+
 # Define the command to run your application
-CMD ["npm", "run", "start"]
+CMD ["node", "dist/src/index.js"]
