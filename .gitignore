@@ -133,3 +133,4 @@ dist
 app.yaml
 env.yaml
 migration.js
+migration.ts
