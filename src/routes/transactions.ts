@@ -52,7 +52,6 @@ transactionsRouter.get("/transaction", verifyUser, async (req: AuthenticatedRequ
     // Adjusting amount to fixed decimal places
     transactions.forEach((transaction) => {
       transaction.amount = parseFloat(transaction.amount.toFixed(2));
-      transaction.date = transaction.transactionDate;
     });
 
     const outTableData = await crunchNumbers(

@@ -1,10 +1,10 @@
 import mongoose, { Schema, Document } from "mongoose";
+import { z } from "zod";
 
-export interface ITransaction extends Document {
+export interface ITransaction {
     description: string;
     amount: number;
     transactionDate: string;
-    date?: string;
     uid: string;
     out: boolean;
     tags: string[];
@@ -17,7 +17,6 @@ const TransactionSchema = new Schema<ITransaction>({
     description: { type: String, required: true },
     amount: { type: Number, required: true },
     transactionDate: { type: String, required: true },
-    date: { type: String, required: false },
     uid: { type: String, required: true },
     out: { type: Boolean, required: true },
     tags: { type: [String], required: false, default: [] },
