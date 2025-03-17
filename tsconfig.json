@@ -1,13 +1,18 @@
 {
+  "ts-node": {
+    "compilerOptions": {
+      "module": "commonjs"
+    }
+  },
     "compilerOptions": {
       "outDir": "dist",
       "sourceMap": true,
       "target": "esnext",
-      "module": "commonjs",
+      "module": "ESNext",
       "esModuleInterop": true,
       "forceConsistentCasingInFileNames": true,
       "noImplicitAny": true,
-    //   "strict": true,
+      // "strict": true,
     "strict": false,
       "skipLibCheck": true
     },
