@@ -15,7 +15,7 @@ transactionsRouter.post("/transaction", verifyUser, async (req: AuthenticatedReq
     const transaction = {
       description: req.body.description,
       amount: parseFloat(req.body.amount),
-      transactionDate: req.body.date,
+      transactionDate: req.body.transactionDate,
       uid: req.uid,
       tags: req.body.tags,
       out: req.body.out,
@@ -120,7 +120,7 @@ transactionsRouter.put("/transaction", verifyUser, async (req: AuthenticatedRequ
       $set: {
         description: req.body.description,
         amount: parseFloat(req.body.amount),
-        transactionDate: req.body.date,
+        transactionDate: req.body.transactionDate,
         payment: req.body.payment,
         tags: req.body.tags,
         out: req.body.out,
