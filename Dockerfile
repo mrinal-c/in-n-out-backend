@@ -21,6 +21,7 @@ EXPOSE 5000
 RUN npm run build
 
 RUN ls
+RUN ls -r dist/
 
 # Define the command to run your application
 CMD ["node", "dist/src/index.js"]
