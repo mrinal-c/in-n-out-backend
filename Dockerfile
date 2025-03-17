@@ -18,7 +18,8 @@ COPY src/ src/
 EXPOSE 5000
 
 # build the app
-RUN npm run build
+# RUN npm run build
 
 # Define the command to run your application
-CMD ["node", "dist/src/index.js"]
+# CMD ["node", "dist/src/index.js"]
+CMD ["npm", "run", "start"]
