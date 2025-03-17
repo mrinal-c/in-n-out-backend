@@ -11,13 +11,10 @@ COPY package*.json ./
 RUN npm ci
 
 # Copy the application code to the container
-COPY routes/ ./routes/
-COPY models/ ./models/
-COPY server.js ./
-COPY lib/ ./lib/
+COPY src/ src/
 
 # Expose the port on which your application will run
 EXPOSE 5000
 
 # Define the command to run your application
-CMD ["npm", "start"]
+CMD ["npm", "run", "start"]
