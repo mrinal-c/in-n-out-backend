@@ -4,7 +4,7 @@
       "sourceMap": true,
       "target": "esnext",
       "module": "NodeNext",
-      "moduleResolution": "nodenext",
+      // "moduleResolution": "nodenext",
       "esModuleInterop": true,
       "forceConsistentCasingInFileNames": true,
       "noImplicitAny": true,
