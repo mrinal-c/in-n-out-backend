@@ -1,14 +1,6 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 import bcrypt from "bcrypt";
 
-// Enum for payment methods
-export enum PaymentMethod {
-  CreditCard = "creditCard",
-  PayPal = "payPal",
-  BankTransfer = "bankTransfer",
-  Cash = "cash",
-}
-
 // Interface for category tables
 interface ICategoryTable {
   category: string;
@@ -23,7 +15,8 @@ export interface IUser extends Document {
   name: string;
   outTable: ICategoryTable[];
   inTable: ICategoryTable[];
-  payments: PaymentMethod[];
+  payments: string[];
+  tags: string[];
   isCorrectPassword(password: string): Promise<boolean>;
 }
 
@@ -47,7 +40,11 @@ const UserSchema = new Schema<IUser>(
     ],
     payments: {
       type: [String],
-      enum: Object.values(PaymentMethod),
+      required: true
+    },
+    tags: {
+      type: [String],
+      required: true
     },
   },
   {

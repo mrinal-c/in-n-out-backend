@@ -14,7 +14,7 @@
     "include": [
       "./*.js",
       "src/**/*.ts",
-      "test/**/*.ts",
+      "test/**/*.ts", "migration.ts",
     ],
   }
   

@@ -2,13 +2,13 @@ import User from "../models/User";
 import { createSecretToken } from "../lib/generateToken";
 import bcrypt from "bcrypt";
 import { Response, Router } from "express";
-import { AuthenticatedRequest } from "./middleware";
+import { AuthenticatedRequest, verifyUser } from "./middleware";
 import Transaction from "../models/Transaction";
 import { parseTransaction } from "../lib/agent";
 
 const agentRouter = Router(); // create router to create route bundle
 
-agentRouter.post('/upload', async (req: AuthenticatedRequest, res: Response) => {
+agentRouter.post('/parse', verifyUser, async (req: AuthenticatedRequest, res: Response) => {
     try {
         if (
             !(
@@ -20,10 +20,11 @@ agentRouter.post('/upload', async (req: AuthenticatedRequest, res: Response) => 
 
         const { message } = req.body;
         //send to ai agent to parse, get result back
-        const transaction = await parseTransaction(message);
+        const user = await User.findById(req.uid).lean().exec();
+        const transaction = await parseTransaction(message, user.tags, user.payments);
 
         // const result = await Transaction.create(transaction);
-        res.json(transaction);
+        res.json(transaction ?? {});
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: "Failed to insert transaction" });

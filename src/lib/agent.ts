@@ -20,30 +20,34 @@ const llm = new ChatOpenAI({
     temperature: 0
 });
 
-const TransactionZodSchema = z.object({
-    description: z.string(),
-    amount: z.number(),
-    transactionDate: z.string(),
-    tags: z.array(z.string()),
-    payment: z.string(),
-});
 
-async function parseTransaction(query: string): Promise<any> {
+
+export async function parseTransaction(query: string, tags: string[], payments: string[]): Promise<object | undefined> {
     const system_prompt = `
-    You are an expert at structured data extraction for a local bank. Given a customer query, you need to extract the following fields:
-    - **date**: The date of the transaction
+    You are an expert at structured data extraction for a local bank. Given a customer transaction descriptions, you need to extract the following fields:
+    - **transactionDate**: The date of the transaction. For reference, todays date is ${new Date().toISOString()}
     - **amount**: The transaction amount in numerical format
-    - **payment**: The payment method (e.g., Visa, MasterCard, Cash, etc.)
-    - **description**: A short description of the transaction
-    - **tags**: Relevant categories for the transaction (e.g., lunch, dinner, personal, subscription, etc.)
+    - **payment**: The payment method. Must be a value from ${payments}
+    - **description**: A short description of the transaction. Do not make this a sentence, it should just be a few words (<5)
+    - **tags**: Relevant categories for the transaction. You can pick up to 5 tags from the following array: ${tags}
     `;
+
+    const TransactionZodSchema = z.object({
+        description: z.string(),
+        amount: z.number(),
+        transactionDate: z.string(),
+        tags: z.array(z.string()),
+        payment: z.string(),
+    });
+
+
 
     const messages = [new SystemMessage(system_prompt), new HumanMessage(query)]
 
     const llm_with_structured_output = llm
         .withStructuredOutput(TransactionZodSchema);
 
-    
+
 
     try {
         const response = await llm_with_structured_output.invoke(messages);
@@ -53,11 +57,22 @@ async function parseTransaction(query: string): Promise<any> {
             throw new Error(`Failed to parse transaction: ${parsedResult.error.message}`);
         }
 
-        return parsedResult.data;
+        const parsedTransaction = parsedResult.data;
+        // Validate the parsed transaction
+        if (
+            !parsedTransaction.description ||
+            !parsedTransaction.amount ||
+            !parsedTransaction.transactionDate ||
+            !parsedTransaction.payment ||
+            parsedTransaction.tags.length === 0 ||
+            parsedTransaction.tags.some(tag => !tags.includes(tag)) ||
+            !payments.includes(parsedTransaction.payment)
+        ) {
+            throw new Error("Validation failed: One or more fields are invalid or missing.");
+        }
+
+        return parsedTransaction;
     } catch (error) {
         console.error("Error parsing transaction:", error);
-        throw new Error("Unable to extract transaction details from the user input.");
     }
 }
-
-export { parseTransaction, TransactionZodSchema };
