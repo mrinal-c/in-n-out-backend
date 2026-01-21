@@ -30,6 +30,9 @@ export async function parseTransaction(query: string, tags: string[], payments: 
     - **payment**: The payment method. Must be a value from ${payments}
     - **description**: A short description of the transaction. Do not make this a sentence, it should just be a few words (<5)
     - **tags**: Relevant categories for the transaction. You can pick up to 5 tags from the following array: ${tags}
+        Example Tags from Common Brands:
+
+        Groceries: Trader Joe's, Walmart, Safeway, Target, Costco, Publix, Kroger, Aldi, Lidl
     `;
 
     const TransactionZodSchema = z.object({
